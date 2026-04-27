@@ -1,48 +1,60 @@
-﻿'use client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+﻿'use client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useUserStore } from '@/store/user-store'
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+
+  const setUser = useUserStore((s) => s.setUser)
 
   async function handleLogin() {
-    setError('');
+    setError('')
 
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
-    });
+    })
 
-    const data = await res.json();
+    const data = await res.json()
 
     if (!res.ok) {
-      setError(data.error || 'Login failed');
-      return;
+      setError(data.error || 'Login failed')
+      return
     }
 
-    router.push('/dashboard');
+    setUser({ email })
+    router.push('/dashboard')
   }
 
   return (
-    <div className="flex items-center justify-center h-[80vh]">
-      <div className="w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Login</h1>
+    <form onSubmit={handleLogin} className="p-6 space-y-4">
+      <Input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="border p-2 w-full"
+      />
+      <Input
+        className="border p-2 w-full"
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
-        <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      {error && <p className="text-red-500 ">{error}</p>}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <Button className="w-full" onClick={handleLogin}>
-          Login
-        </Button>
-      </div>
-    </div>
-  );
+      <Button type={'submit'} className="px-4 py-2 bg-blue-600 text-white rounded">
+        Login
+      </Button>
+    </form>
+  )
 }
