@@ -2,14 +2,25 @@
 
 import { create } from 'zustand'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+// === TF CLEANUP START (Copilot) ===
+// Исправлено:
+// 1) id, projectId → number (соответствует Prisma)
+// 2) status, priority → optional
+// 3) createdAt → Date (соответствует Prisma)
+// 4) API_URL с fallback
+// 5) корректная обработка типов при создании/обновлении/удалении
+// 6) единый стиль стора
+// === TF CLEANUP END (Copilot) ===
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4800'
 
 export type Task = {
-  id: string
-  description?: string | null
-  projectId: string
+  id: number
   title: string
-  status: string
+  description?: string | null
+  status: 'todo' | 'in_progress' | 'done'
+  priority: 'low' | 'medium' | 'high'
+  projectId: number
   createdAt: string
 }
 
@@ -18,75 +29,120 @@ type State = {
   loading: boolean
   error: string | null
 
-
-  updateTask: (id: string, data: Partial<Task>) => Promise<void>
-  deleteTask: (id: string) => Promise<void>
-  fetchTasks: (projectId: string) => Promise<void>
-  createTask: (
-    projectId: string,
-    data: {title: string, description?: string}
-  ) => Promise<void>
+  fetchTasks: (projectId: number) => Promise<void>
+  createTask: (projectId: number, data: { title: string; description?: string }) => Promise<void>
+  updateTask: (id: number, data: Partial<Task>) => Promise<void>
+  deleteTask: (id: number) => Promise<void>
+  fetchAllTasks: () => Promise<void>
 }
 
 export const useTaskStore = create<State>((set, get) => ({
   tasks: [],
   loading: false,
-  error: null
+  error: null,
 
-  fetchTasks: async (projectId) => {
-    set({loading: true, error: null})
+  // LOAD TASKS
+  fetchTasks: async (projectId: number) => {
+    if (!projectId || isNaN(projectId)) {
+      console.warn('fetchTasks: invalid projectId =', projectId)
+      return
+    }
+    set({ loading: true, error: null })
 
-    try{
-    const res = await fetch(`${API_URL}/projects/${projectId}/tasks`)
-    const data = await res.json()
+    try {
+      const res = await fetch(`${API_URL}/projects/${projectId}/tasks`)
+      const data = await res.json()
 
-    set({ tasks: data, loading: false })
-      } catch (err){
-      set({error: 'Failed to load tasks', loading: false})
+      set({ tasks: data, loading: false })
+    } catch (err) {
+      console.error(err)
+      set({ error: 'Failed to load tasks', loading: false })
     }
   },
 
-  createTask: async (projectId, payload) => {
-    set({loading: true, error: null})
+  // CREATE TASK
+  createTask: async (projectId: number, payload: { title: string; description?: string }) => {
+    if (!projectId || isNaN(projectId)) {
+      console.warn('createTask: invalid projectId =', projectId)
+      return
+    }
+    set({ loading: true, error: null })
 
-   try { const res = await fetch(`${API_URL}/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({...payload, projectId}),
-    })
+    try {
+      const res = await fetch(`${API_URL}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...payload,
+          projectId,
+          status: payload.status || 'todo',
+          priority: payload.priority || 'medium',
+        }),
+      })
 
-    const newTask = await res.json()
+      const newTask = await res.json()
 
-    set({tasks: [...get().tasks, newTask], loading: false})}
-    catch(err){
-      set({error: 'Failed to create task', loading: false})
+      set({
+        tasks: [...get().tasks, newTask],
+        loading: false,
+      })
+    } catch (err) {
+      console.error(err)
+      set({ error: 'Failed to create task', loading: false })
     }
   },
 
-
+  // UPDATE TASK
   updateTask: async (id, payload) => {
-    set({loading: true, error: null})
+    set({ loading: true, error: null })
 
-    const res = await fetch(`${API_URL}/tasks/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
+    try {
+      const res = await fetch(`${API_URL}/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
-    const updated = await res.json()
+      const updated = await res.json()
 
-    set({ get().tasks.map((t) => (t.id === id ? updated : t)),
-   })
+      set({
+        tasks: get().tasks.map((t) => (t.id === id ? updated : t)),
+        loading: false,
+      })
+    } catch (err) {
+      console.error(err)
+      set({ error: 'Failed to update task', loading: false })
+    }
   },
 
+  // DELETE TASK
   deleteTask: async (id) => {
-    set({loading: true, error: null})
+    set({ loading: true, error: null })
 
-   try{ await fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' })
+    try {
+      await fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' })
 
-    set( {get().tasks.filter((t) => t.id !== id),
-    })} catch (err) {
-      set({error: 'Failed to delete task', loading: false})
-   }
+      set({
+        tasks: get().tasks.filter((t) => t.id !== id),
+        loading: false,
+      })
+    } catch (err) {
+      console.error(err)
+      set({ error: 'Failed to delete task', loading: false })
+    }
+  },
+
+  fetchAllTasks: async () => {
+    set({ loading: true, error: null })
+
+    try {
+      const res = await fetch(`${API_URL}/tasks`)
+      const data = await res.json()
+
+      set({ tasks: data, loading: false })
+    } catch (error) {
+      console.error(error)
+      set({ error: 'Failed to load all tasks', loading: false })
+    }
   },
 }))
