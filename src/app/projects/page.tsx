@@ -16,9 +16,9 @@ export default function ProjectsPage() {
   }, [fetchProjects])
 
   // Create Project
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = new FormData(e.target)
+    const form = new FormData(e.currentTarget)
     const title = form.get('title') as string
     const description = form.get('description') as string
 

@@ -1,20 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useProjectsStore } from '@/store/projects-store'
-import { useTasksStore } from '@/store/tasks-store'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { useProjectStore } from '@/store/project-store'
+import { useTaskStore, Task } from '@/store/task-store'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export default function ProjectPage({ params }: { params: { id: string } }) {
   const projectId = params.id
 
-  const { projects, fetchProjects } = useProjectsStore()
-  const { tasks, fetchTasks, createTask, updateTask, deleteTask, loading, error } = useTasksStore()
+  const { projects, fetchProjects } = useProjectStore()
+  const { tasks, fetchTasks, createTask, updateTask, deleteTask, loading, error } = useTaskStore()
 
   // UI state
   const [open, setOpen] = useState(false)
   const [openEdit, setOpenEdit] = useState(false)
-  const [editingTask, setEditingTask] = useState<any>(null)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   const project = projects.find((p) => p.id === projectId)
 
@@ -24,9 +24,9 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   }, [projectId, fetchProjects, fetchTasks])
 
   // Create Task
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = new FormData(e.target)
+    const form = new FormData(e.currentTarget)
     const title = form.get('title') as string
     const description = form.get('description') as string
 
@@ -35,14 +35,16 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   }
 
   // Edit Task
-  const handleSubmitEditForm = async (e: any) => {
+  const handleSubmitEditForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = new FormData(e.target)
+    const form = new FormData(e.currentTarget)
     const title = form.get('title') as string
     const description = form.get('description') as string
 
-    await updateTask(editingTask.id, { title, description })
-    setOpenEdit(false)
+    if (editingTask) {
+      await updateTask(editingTask.id, { title, description })
+      setOpenEdit(false)
+    }
   }
 
   if (!project) return <p className="p-6">Loading project...</p>
@@ -59,7 +61,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
         {error && <p className="text-red-500">{error}</p>}
 
         <div className="space-y-2">
-          {tasks.map((t) => (
+          {tasks.map((t: Task) => (
             <div key={t.id} className="border p-4 rounded flex justify-between items-center">
               <div>
                 <h3 className="text-lg">{t.title}</h3>
@@ -124,7 +126,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
               <input name="title" defaultValue={editingTask.title} className="w-full border p-2 rounded" />
               <textarea
                 name="description"
-                defaultValue={editingTask.description}
+                defaultValue={editingTask.description || ''}
                 className="w-full border p-2 rounded"
               />
 

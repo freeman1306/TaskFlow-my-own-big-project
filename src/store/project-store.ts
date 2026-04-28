@@ -17,7 +17,7 @@ type State = {
   error: string | null
 
   fetchProjects: () => Promise<void>
-  createProject: (data: {title: string; description?: string}) => Promise<void>
+  createProject: (data: { title: string; description?: string }) => Promise<void>
 }
 
 export const useProjectStore = create<State>((set, get) => ({
@@ -26,33 +26,33 @@ export const useProjectStore = create<State>((set, get) => ({
   error: null,
 
   fetchProjects: async () => {
-   set({loading: true, error: null})
+    set({ loading: true, error: null })
 
-    try{
-     const res = await fetch(`${API_URL}/projects`)
+    try {
+      const res = await fetch(`${API_URL}/projects`)
       const data = await res.json()
 
-      set({projects: data, loading: false})
-    } catch (err) {
-     set({error: 'Failed to load projects', loading: false})
+      set({ projects: data, loading: false })
+    } catch {
+      set({ error: 'Failed to load projects', loading: false })
     }
   },
 
-  createProject: async (payload) => {
+  createProject: async (payload: { title: string; description?: string }) => {
     set({ loading: true, error: null })
 
-   try{
-     const res = await fetch(`${API_URL}/projects`, {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify(payload),
-     })
+    try {
+      const res = await fetch(`${API_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
-     const newProject = await res.json()
+      const newProject = await res.json()
 
-     set({projects: [...get().projects, newProject], loading: false})
-   } catch (err){
-      set({error: "Failed to create project", loading: false})
-   }
+      set({ projects: [...get().projects, newProject], loading: false })
+    } catch {
+      set({ error: 'Failed to create project', loading: false })
+    }
   },
 }))
