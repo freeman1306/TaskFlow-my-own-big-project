@@ -24,7 +24,7 @@ type State = {
   createTask: (projectId: string, data: { title: string; description?: string }) => Promise<void>
   updateTask: (id: string, data: Partial<Task>) => Promise<void>
   deleteTask: (id: string) => Promise<void>
-  reorderTasks: (projectId: string, tasks: Task[]) => void
+  reorderTasks: (tasks: Task[]) => Promise<void>
 }
 
 export const useTaskStore = create<State>((set, get) => ({
@@ -94,7 +94,18 @@ export const useTaskStore = create<State>((set, get) => ({
     }
   },
 
-  reorderTasks: (projectId: string, tasks: Task[]) => {
-    set({ tasks })
+  reorderTasks: async (tasks: Task[]) => {
+    try {
+      const res = await fetch(`${API_URL}/tasks/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks }),
+      })
+
+      const updated = await res.json()
+      set({ tasks: updated })
+    } catch {
+      set({ error: 'Failed to reorder tasks' })
+    }
   },
 }))

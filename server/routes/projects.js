@@ -26,6 +26,7 @@ router.get('/:id/tasks', async (req, res) => {
 
   const tasks = await prisma.task.findMany({
     where: { projectId },
+    orderBy: [{ status: 'asc' }, { order: 'asc' }],
   })
 
   res.json(tasks)

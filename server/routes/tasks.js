@@ -26,9 +26,26 @@ router.delete('/:id', async (req, res) => {
   const id = req.params.id
 
   const deleted = await prisma.task.delete({
-    where: {id}
+    where: { id },
   })
 
   res.json(deleted)
 })
+
+// REORDER tasks within a column
+router.post('/reorder', async (req, res) => {
+  const { tasks } = req.body
+
+  // Update order for each task
+  const updates = tasks.map((task) =>
+    prisma.task.update({
+      where: { id: task.id },
+      data: { order: task.order },
+    })
+  )
+
+  const updated = await Promise.all(updates)
+  res.json(updated)
+})
+
 module.exports = router

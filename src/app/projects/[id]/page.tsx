@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useProjectStore } from '@/store/project-store'
 import { useTaskStore, Task } from '@/store/task-store'
+import { KanbanBoard } from '@/components/board/KanbanBoard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
-export default function ProjectPage({ params }: { params: { id: string } }) {
-  const projectId = params.id
+export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  const projectId = React.use(params).id
 
   const { projects, fetchProjects } = useProjectStore()
   const { tasks, fetchTasks, createTask, updateTask, deleteTask, loading, error } = useTaskStore()
@@ -60,32 +61,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
         {loading && <p>Loading tasks...</p>}
         {error && <p className="text-red-500">{error}</p>}
 
-        <div className="space-y-2">
-          {tasks.map((t: Task) => (
-            <div key={t.id} className="border p-4 rounded flex justify-between items-center">
-              <div>
-                <h3 className="text-lg">{t.title}</h3>
-                <p>Status: {t.status}</p>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  className="px-3 py-1 bg-blue-600 text-white rounded"
-                  onClick={() => {
-                    setEditingTask(t)
-                    setOpenEdit(true)
-                  }}
-                >
-                  Edit
-                </button>
-
-                <button className="px-3 py-1 bg-red-600 text-white rounded" onClick={() => deleteTask(t.id)}>
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        {tasks.length > 0 && <KanbanBoard tasks={tasks} />}
 
         {/* Add Task Button */}
         <button
