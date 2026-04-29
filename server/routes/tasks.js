@@ -5,7 +5,7 @@ const prisma = require('../prisma/client')
 // create task
 router.post('/', async (req, res) => {
   const task = await prisma.task.create({
-    data: req.body
+    data: req.body,
   })
   res.json(task)
 })
@@ -14,8 +14,8 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const id = req.params.id
   const updated = await prisma.task.update({
-    where: {id},
-    data: req.body
+    where: { id },
+    data: req.body,
   })
 
   res.json(updated)
@@ -41,7 +41,7 @@ router.post('/reorder', async (req, res) => {
     prisma.task.update({
       where: { id: task.id },
       data: { order: task.order },
-    })
+    }),
   )
 
   const updated = await Promise.all(updates)
