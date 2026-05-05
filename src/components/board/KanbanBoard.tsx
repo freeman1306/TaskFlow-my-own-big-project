@@ -13,7 +13,7 @@ interface KanbanBoardProps {
 export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
-  const { reorderTasks } = useTaskStore()
+  const { reorderTasksBulk } = useTaskStore()
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, taskId: string) => {
     setDraggedTaskId(taskId)
@@ -57,7 +57,7 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
     setDraggedTaskId(null)
 
     // Save to API
-    await reorderTasks(finalTasks)
+    await reorderTasksBulk(finalTasks)
   }
 
   return (
@@ -66,7 +66,9 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
         <Column
           key={status}
           status={status}
-          tasks={tasks.filter((t) => t.status === status).sort((a, b) => (a.order || 0) - (b.order || 0))}
+          tasks={tasks
+            .filter((t) => t.status === status)
+            .sort((a, b) => (a.order || 0) - (b.order || 0))}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDrop={handleDrop}

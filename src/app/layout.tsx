@@ -2,7 +2,6 @@
 
 import React from 'react'
 import './globals.css'
-import { Inter } from 'next/font/google'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { AppHeader } from '@/components/layout/app-header'
 

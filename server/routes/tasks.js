@@ -20,11 +20,12 @@ router.post('/', async (req, res) => {
 
 // UPDATE task
 router.put('/:id', async (req, res) => {
-  const id = req.params.id
-  const updated = await prisma.task.update({
-    where: { id },
-    data: req.body,
-  })
+  try {
+    const id = req.params.id
+    const updated = await prisma.task.update({
+      where: { id },
+      data: req.body,
+    })
 
     res.json(updated)
   } catch (err) {
@@ -35,11 +36,12 @@ router.put('/:id', async (req, res) => {
 
 // DELETE task
 router.delete('/:id', async (req, res) => {
-  const id = Number(req.params.id)
+  try {
+    const id = req.params.id
 
-  const deleted = await prisma.task.delete({
-    where: { id },
-  })
+    const deleted = await prisma.task.delete({
+      where: { id },
+    })
 
     res.json(deleted)
   } catch (err) {

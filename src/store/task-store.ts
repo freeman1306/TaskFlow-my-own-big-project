@@ -15,11 +15,11 @@ import { create } from 'zustand'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4800'
 
 export type Task = {
-  id: number
+  id: string
   title: string
+  description?: string
   status: string
   priority?: string
-  order?: number
   createdAt: string
   order: number
 }
@@ -30,10 +30,13 @@ type State = {
   error: string | null
 
   fetchTasks: (projectId: string) => Promise<void>
+  fetchAllTasks: () => Promise<void>
   createTask: (projectId: string, data: { title: string; description?: string }) => Promise<void>
   updateTask: (id: string, data: Partial<Task>) => Promise<void>
   deleteTask: (id: string) => Promise<void>
-  reorderTasks: (tasks: Task[]) => Promise<void>
+  moveTask: (id: string, newStatus: string) => Promise<void>
+  reorderTasks: (id: string, newIndex: number, columnStatus: string) => Promise<void>
+  reorderTasksBulk: (tasks: Task[]) => Promise<void>
 }
 
 export const useTaskStore = create<State>((set, get) => ({
@@ -51,6 +54,17 @@ export const useTaskStore = create<State>((set, get) => ({
       set({ tasks: data, loading: false })
     } catch {
       set({ error: 'Failed to load tasks', loading: false })
+    }
+  },
+
+  fetchAllTasks: async () => {
+    set({ loading: true, error: null })
+    try {
+      const res = await fetch(`${API_URL}/tasks`)
+      const data = await res.json()
+      set({ tasks: data, loading: false })
+    } catch {
+      set({ error: 'Failed to load all tasks', loading: false })
     }
   },
 
@@ -73,17 +87,40 @@ export const useTaskStore = create<State>((set, get) => ({
   },
 
   // === MOVE TASK (Drag & Drop) ===
-  moveTask: async (id, newStatus) => {
-    const prev = get().tasks
-    const task = prev.find((t) => t.id === id)
+  moveTask: async (id: string, newStatus: string) => {
+    const prevTasks = get().tasks
+    const task = prevTasks.find((t) => t.id === id)
     if (!task) return
+
+    // Optimistic update
+    set({
+      tasks: prevTasks.map((t) => (t.id === id ? { ...t, status: newStatus } : t)),
+    })
+
+    try {
+      const res = await fetch(`${API_URL}/tasks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (!res.ok) throw new Error()
+
+      const updated = await res.json()
+      set({
+        tasks: get().tasks.map((t) => (t.id === id ? updated : t)),
+      })
+    } catch {
+      set({ tasks: prevTasks, error: 'Failed to move task' })
+    }
+  },
 
   updateTask: async (id: string, payload: Partial<Task>) => {
     set({ loading: true, error: null })
 
     try {
       const res = await fetch(`${API_URL}/tasks/${id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
@@ -108,12 +145,54 @@ export const useTaskStore = create<State>((set, get) => ({
     }
   },
 
-  reorderTasks: async (tasks: Task[]) => {
+  reorderTasks: async (id: string, newIndex: number, columnStatus: string) => {
+    const prevTasks = get().tasks
+    const columnTasks = prevTasks
+      .filter((t) => t.status === columnStatus)
+      .sort((a, b) => a.order - b.order)
+
+    const oldIndex = columnTasks.findIndex((t) => t.id === id)
+    if (oldIndex === -1) return
+
+    const newColumnTasks = [...columnTasks]
+    const [movedTask] = newColumnTasks.splice(oldIndex, 1)
+    newColumnTasks.splice(newIndex, 0, movedTask)
+
+    // Обновляем order для всех задач в колонке
+    const updatedColumnTasks = newColumnTasks.map((t, index) => ({
+      ...t,
+      order: index,
+    }))
+
+    // Обновляем общий стейт
+    set({
+      tasks: prevTasks.map((t) => {
+        const updated = updatedColumnTasks.find((ut) => ut.id === t.id)
+        return updated || t
+      }),
+    })
+
+    try {
+      await fetch(`${API_URL}/tasks/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tasks: updatedColumnTasks.map((t) => ({ id: t.id, order: t.order })),
+        }),
+      })
+    } catch {
+      set({ tasks: prevTasks, error: 'Failed to reorder tasks' })
+    }
+  },
+
+  reorderTasksBulk: async (tasks: Task[]) => {
     try {
       const res = await fetch(`${API_URL}/tasks/reorder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasks }),
+        body: JSON.stringify({
+          tasks: tasks.map((t) => ({ id: t.id, order: t.order })),
+        }),
       })
 
       const updated = await res.json()

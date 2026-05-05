@@ -1,23 +1,23 @@
-﻿'use client';
+﻿'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const items = [
   { href: '/', label: 'Dashboard' },
   { href: '/projects', label: 'Projects' },
   { href: '/tasks', label: 'Tasks' },
   { href: '/settings', label: 'Settings' },
-];
+]
 
 export function AppSidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   return (
     <aside className="w-60 border-r h-full p-4">
       <nav className="flex flex-col gap-2">
         {items.map((item) => {
-          const active = pathname === item.href;
+          const active = pathname === item.href
 
           return (
             <Link
@@ -27,9 +27,9 @@ export function AppSidebar() {
             >
               {item.label}
             </Link>
-          );
+          )
         })}
       </nav>
     </aside>
-  );
+  )
 }

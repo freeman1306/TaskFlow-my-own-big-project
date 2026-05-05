@@ -14,7 +14,7 @@ import { create } from 'zustand'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4800'
 
 type Project = {
-  id: number
+  id: string
   title: string
   description?: string | null
 }

@@ -16,7 +16,10 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" onClick={handleBackdropClick}>
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-white rounded-lg shadow-lg">{children}</div>
     </div>
   )
