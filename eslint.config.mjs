@@ -7,24 +7,22 @@ import prettier from 'eslint-plugin-prettier'
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'node_modules/**', '.next/**', 'public/**'],
   },
 
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  react.configs.flat.recommended,
-  reactHooks.configs.recommended,
+  // react.configs.flat.recommended,
+  // reactHooks.configs.recommended,
 
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx,js,jsx,cjs,mjs}'],
     languageOptions: {
       parser: tseslint.parser,
-      parserOptions: {
-        project: './tsconfig.json',
-      },
       globals: {
         ...globals.browser,
         ...globals.node,
+        ...globals.commonjs,
       },
     },
     plugins: {
@@ -33,10 +31,13 @@ export default [
       prettier,
     },
     rules: {
+      ...react.configs.flat.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
       'prettier/prettier': 'error',
       'react/react-in-jsx-scope': 'off',
       '@typescript-eslint/no-unused-vars': ['error'],
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
 ]

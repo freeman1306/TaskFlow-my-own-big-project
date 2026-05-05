@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useTaskStore, Task } from '@/store/task-store'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function TasksPage() {
   const { tasks, fetchAllTasks, loading } = useTaskStore()
@@ -10,10 +10,8 @@ export default function TasksPage() {
   const [priorityFilter, setPriorityFilter] = useState('all')
 
   useEffect(() => {
-    // Fetch all tasks - for now using empty string as projectId
-    // TODO: Implement filtering or separate endpoint for all tasks
-    fetchTasks('')
-  }, [fetchTasks])
+    fetchAllTasks()
+  }, [fetchAllTasks])
 
   const filtered = tasks.filter((t) => {
     if (statusFilter !== 'all' && t.status !== statusFilter) return false
@@ -51,7 +49,7 @@ export default function TasksPage() {
       {loading && <p>Loading...</p>}
 
       <div className="space-y-2">
-        {tasks.map((t: Task) => (
+        {filtered.map((t: Task) => (
           <div key={t.id} className="border p-4 rounded">
             <h3 className="text-lg">{t.title}</h3>
             <p>Status: {t.status}</p>

@@ -1,1 +1,1 @@
-﻿export const users: { email: string; password: string }[] = [];
+﻿export const users: { email: string; password: string }[] = []

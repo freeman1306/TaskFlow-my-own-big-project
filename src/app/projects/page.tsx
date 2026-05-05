@@ -22,7 +22,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     fetchProjects()
-  }, []) // важно: без зависимостей
+  }, [fetchProjects])
 
   // Create Project
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

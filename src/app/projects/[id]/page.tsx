@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useProjectStore } from '@/store/project-store'
+import { useProjectsStore } from '@/store/project-store'
 import { useTaskStore, Task } from '@/store/task-store'
 import { KanbanBoard } from '@/components/board/KanbanBoard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -9,23 +9,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const projectId = React.use(params).id
 
-  const { projects, fetchProjects } = useProjectStore()
-  const { tasks, fetchTasks, createTask, updateTask, deleteTask, loading, error } = useTaskStore()
+  const { projects, fetchProjects } = useProjectsStore()
+  const { tasks, fetchTasks, createTask, updateTask, loading, error } = useTaskStore()
 
   const [open, setOpen] = useState(false)
   const [openEdit, setOpenEdit] = useState(false)
-  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [editingTask] = useState<Task | null>(null)
 
   const project = projects.find((p) => p.id === projectId)
 
   useEffect(() => {
     if (!projects.length) fetchProjects()
-    if (!isNaN(projectId)) fetchTasks(projectId)
-  }, [projectId])
-
-  if (isNaN(projectId)) {
-    return <p className="p-6 text-red-600">Invalid project ID</p>
-  }
+    fetchTasks(projectId)
+  }, [projectId, fetchTasks, projects.length, fetchProjects])
 
   if (!project) {
     return <p className="p-6">Loading project...</p>

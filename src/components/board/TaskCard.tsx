@@ -16,7 +16,9 @@ export function TaskCard({ task, onDragStart }: TaskCardProps) {
       {task.description && <p className="text-xs text-gray-500 mt-1">{task.description}</p>}
       <div className="flex gap-2 mt-2 text-xs">
         <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">{task.status}</span>
-        {task.priority && <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded">{task.priority}</span>}
+        {task.priority && (
+          <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded">{task.priority}</span>
+        )}
       </div>
     </div>
   )

@@ -1,37 +1,37 @@
-﻿'use client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+﻿'use client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function RegisterPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [error, setError] = useState('')
 
   async function handleRegister() {
-    setError('');
+    setError('')
 
     if (password !== confirm) {
-      setError('Passwords do not match');
-      return;
+      setError('Passwords do not match')
+      return
     }
 
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
-    });
+    })
 
-    const data = await res.json();
+    const data = await res.json()
 
     if (!res.ok) {
-      setError(data.error || 'Registration failed');
-      return;
+      setError(data.error || 'Registration failed')
+      return
     }
-    router.push('/auth/login');
+    router.push('/auth/login')
   }
 
   return (
@@ -39,8 +39,18 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm space-y-4">
         <h1 className="text-2xl font-semibold tracking-tight">Register</h1>
 
-        <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
         <Input
           type="password"
@@ -56,5 +66,5 @@ export default function RegisterPage() {
         </Button>
       </div>
     </div>
-  );
+  )
 }
