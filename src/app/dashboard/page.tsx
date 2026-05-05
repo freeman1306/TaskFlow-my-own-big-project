@@ -1,42 +1,35 @@
 ﻿'use client'
 
-import { useRouter } from 'next/navigation'
-import { useUserStore } from '@/store/user-store'
+import { useTaskStore } from '@/store/task-store'
 
-export default function DashboardPage() {
-  const router = useRouter()
+export default function BoardPage() {
+  const tasks = useTaskStore((s) => s.tasks)
 
-  const clearUser = useUserStore((s) => s.clearUser)
-
-  async function logout() {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    clearUser()
-    router.push('/auth/login')
-  }
+  const columns = [
+    { id: 'todo', title: 'To Do' },
+    { id: 'in-progress', title: 'In Progress' },
+    { id: 'done', title: 'Done' },
+  ]
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-
-      <button onClick={logout} className="px-4 py-2 bg-red-500 text-white rounded">
-        Logout
-      </button>
+      <h1 className="text-2xl font-semibold tracking-tight">Task Board</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 border rounded-lg bg-card">
-          <p className="text-sm text-muted-foreground">Tasks</p>
-          <p className="text-3xl font-bold">12</p>
-        </div>
+        {columns.map((col) => (
+          <div key={col.id} className="p-4 border rounded-lg bg-card min-h-100">
+            <h2 className="text-lg font-semibold mb-4">{col.title}</h2>
 
-        <div className="p-4 border rounded-lg bg-card">
-          <p className="text-sm text-muted-foreground">Projects</p>
-          <p className="text-3xl font-bold">3</p>
-        </div>
-
-        <div className="p-4 border rounded-lg bg-card">
-          <p className="text-sm text-muted-foreground">AI Insights</p>
-          <p className="text-3xl font-bold">4</p>
-        </div>
+            {tasks
+              .filter((t) => t.status === col.id)
+              .map((task) => (
+                <div key={task.id} className="p-3 mb-3 rounded border bg-background shadow-sm">
+                  <p className="font-medium">{task.title}</p>
+                  <p className="text-sm text-muted-foreground">{task.description}</p>
+                </div>
+              ))}
+          </div>
+        ))}
       </div>
     </div>
   )

@@ -1,18 +1,42 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import js from '@eslint/js'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+import react from 'eslint-plugin-react'
+import reactHooks from 'eslint-plugin-react-hooks'
+import prettier from 'eslint-plugin-prettier'
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
+export default [
+  {
+    ignores: ['dist/**', 'node_modules/**'],
+  },
 
-export default eslintConfig;
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  react.configs.flat.recommended,
+  reactHooks.configs.recommended,
+
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    plugins: {
+      react,
+      'react-hooks': reactHooks,
+      prettier,
+    },
+    rules: {
+      'prettier/prettier': 'error',
+      'react/react-in-jsx-scope': 'off',
+      '@typescript-eslint/no-unused-vars': ['error'],
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+]

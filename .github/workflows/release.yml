@@ -1,0 +1,44 @@
+# здесь я называю workflow — он будет виден в GitHub Actions
+name: Release
+
+# здесь я говорю: запускать workflow при пуше в main
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    # здесь я выбираю среду, где будет выполняться CI
+    runs-on: ubuntu-latest
+
+    steps:
+      # здесь я скачиваю код репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # здесь я ставлю Node.js нужной версии
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # здесь я ставлю зависимости проекта
+      - name: Install dependencies
+        run: npm ci
+
+      # здесь я запускаю линтер, чтобы не выпускать плохой код
+      - name: Run ESLint
+        run: npm run lint
+
+      # здесь я проверяю типы TypeScript
+      - name: Type check
+        run: npx tsc --noEmit
+
+      # здесь я запускаю semantic-release,
+      # который сам определит версию, обновит changelog,
+      # создаст GitHub Release и запушит изменения
+      - name: Run semantic-release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
