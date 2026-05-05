@@ -12,7 +12,6 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const { projects, fetchProjects } = useProjectStore()
   const { tasks, fetchTasks, createTask, updateTask, deleteTask, loading, error } = useTaskStore()
 
-  // UI state
   const [open, setOpen] = useState(false)
   const [openEdit, setOpenEdit] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
@@ -21,8 +20,16 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   useEffect(() => {
     if (!projects.length) fetchProjects()
-    fetchTasks(projectId)
-  }, [projectId, fetchProjects, fetchTasks])
+    if (!isNaN(projectId)) fetchTasks(projectId)
+  }, [projectId])
+
+  if (isNaN(projectId)) {
+    return <p className="p-6 text-red-600">Invalid project ID</p>
+  }
+
+  if (!project) {
+    return <p className="p-6">Loading project...</p>
+  }
 
   // Create Task
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,13 +55,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     }
   }
 
-  if (!project) return <p className="p-6">Loading project...</p>
-
   return (
     <>
       <div className="p-6 space-y-4">
         <h1 className="text-2xl font-semibold">{project.title}</h1>
-        <p className="text-gray-600">{project.description}</p>
+        <p className="text-gray-600">{project.description || 'No description'}</p>
 
         <h2 className="text-xl font-medium mt-6">Tasks</h2>
 
@@ -63,7 +68,6 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
         {tasks.length > 0 && <KanbanBoard tasks={tasks} />}
 
-        {/* Add Task Button */}
         <button
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mt-4"
           onClick={() => setOpen(true)}
@@ -72,7 +76,6 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         </button>
       </div>
 
-      {/* Add Task Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -80,17 +83,38 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input name="title" type="text" placeholder="Task title" className="w-full border p-2 rounded" />
-            <textarea name="description" placeholder="Description" className="w-full border p-2 rounded" />
+            <input
+              name="title"
+              type="text"
+              placeholder="Task title"
+              className="w-full border p-2 rounded"
+            />
+            <textarea
+              name="description"
+              placeholder="Description"
+              className="w-full border p-2 rounded"
+            />
 
-            <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
               Create
             </button>
+            <select name="status" className="w-full border p-2 rounded">
+              <option value="todo">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+            <select name="priority" className="w-full border p-2 rounded">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Task Modal */}
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent>
           <DialogHeader>
@@ -99,14 +123,40 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
           {editingTask && (
             <form className="space-y-4" onSubmit={handleSubmitEditForm}>
-              <input name="title" defaultValue={editingTask.title} className="w-full border p-2 rounded" />
+              <input
+                name="title"
+                defaultValue={editingTask.title}
+                className="w-full border p-2 rounded"
+              />
               <textarea
                 name="description"
                 defaultValue={editingTask.description || ''}
                 className="w-full border p-2 rounded"
               />
+              <select
+                name="status"
+                defaultValue={editingTask.status}
+                className="w-full border p-2 rounded"
+              >
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
 
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              <select
+                name="priority"
+                defaultValue={editingTask.priority}
+                className="w-full border p-2 rounded"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
                 Save
               </button>
             </form>

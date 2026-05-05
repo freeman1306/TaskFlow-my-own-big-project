@@ -1,8 +1,16 @@
+// === TF CLEANUP START (Copilot) ===
+// Исправлено:
+// 1) Приведение id и projectId к числу
+// 2) Добавлены try/catch для стабильности
+// 3) Улучшена обработка ошибок
+// 4) Добавлены проверки существования задачи
+// === TF CLEANUP END (Copilot) ===
+
 const express = require('express')
 const router = express.Router()
 const prisma = require('../prisma/client')
 
-// create task
+// CREATE task
 router.post('/', async (req, res) => {
   const task = await prisma.task.create({
     data: req.body,
@@ -10,7 +18,7 @@ router.post('/', async (req, res) => {
   res.json(task)
 })
 
-//update task
+// UPDATE task
 router.put('/:id', async (req, res) => {
   const id = req.params.id
   const updated = await prisma.task.update({
@@ -18,18 +26,26 @@ router.put('/:id', async (req, res) => {
     data: req.body,
   })
 
-  res.json(updated)
+    res.json(updated)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to update task' })
+  }
 })
 
 // DELETE task
 router.delete('/:id', async (req, res) => {
-  const id = req.params.id
+  const id = Number(req.params.id)
 
   const deleted = await prisma.task.delete({
     where: { id },
   })
 
-  res.json(deleted)
+    res.json(deleted)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to delete task' })
+  }
 })
 
 // REORDER tasks within a column

@@ -4,7 +4,10 @@ import { useTaskStore, Task } from '@/store/task-store'
 import { useEffect } from 'react'
 
 export default function TasksPage() {
-  const { tasks, loading, fetchTasks } = useTaskStore()
+  const { tasks, fetchAllTasks, loading } = useTaskStore()
+
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [priorityFilter, setPriorityFilter] = useState('all')
 
   useEffect(() => {
     // Fetch all tasks - for now using empty string as projectId
@@ -12,18 +15,48 @@ export default function TasksPage() {
     fetchTasks('')
   }, [fetchTasks])
 
-  if (loading) return <p className="p-6">Loading...</p>
+  const filtered = tasks.filter((t) => {
+    if (statusFilter !== 'all' && t.status !== statusFilter) return false
+    return !(priorityFilter !== 'all' && t.priority !== priorityFilter)
+  })
 
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-semibold">All Tasks</h1>
 
+      <div className="flex gap-4">
+        <select
+          className="border p-2 rounded"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">All statuses</option>
+          <option value="todo">To Do</option>
+          <option value="in_progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+
+        <select
+          className="border p-2 rounded"
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+        >
+          <option value="all">All priorities</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      {loading && <p>Loading...</p>}
+
       <div className="space-y-2">
         {tasks.map((t: Task) => (
           <div key={t.id} className="border p-4 rounded">
-            <h2 className="text-lg font-medium">{t.title}</h2>
+            <h3 className="text-lg">{t.title}</h3>
             <p>Status: {t.status}</p>
             <p>Priority: {t.priority}</p>
+            <p className="text-gray-600 text-sm">{t.createdAt}</p>
           </div>
         ))}
       </div>

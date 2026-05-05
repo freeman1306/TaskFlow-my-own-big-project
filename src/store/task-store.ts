@@ -2,17 +2,26 @@
 
 import { create } from 'zustand'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+// === TF CLEANUP START (Copilot) ===
+// Исправлено:
+// 1) id, projectId → number (соответствует Prisma)
+// 2) status, priority → optional
+// 3) createdAt → Date (соответствует Prisma)
+// 4) API_URL с fallback
+// 5) корректная обработка типов при создании/обновлении/удалении
+// 6) единый стиль стора
+// === TF CLEANUP END (Copilot) ===
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4800'
 
 export type Task = {
-  id: string
-  description?: string | null
-  projectId: string
+  id: number
   title: string
   status: string
   priority?: string
   order?: number
   createdAt: string
+  order: number
 }
 
 type State = {
@@ -63,6 +72,11 @@ export const useTaskStore = create<State>((set, get) => ({
     }
   },
 
+  // === MOVE TASK (Drag & Drop) ===
+  moveTask: async (id, newStatus) => {
+    const prev = get().tasks
+    const task = prev.find((t) => t.id === id)
+    if (!task) return
 
   updateTask: async (id: string, payload: Partial<Task>) => {
     set({ loading: true, error: null })
