@@ -24,13 +24,12 @@ export default function ProjectsPage() {
     fetchProjects()
   }, []) // важно: без зависимостей
 
-  const handleSubmit = async (e: any) => {
+  // Create Project
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = new FormData(e.target)
-    const title = (form.get('title') as string).trim()
-    const description = (form.get('description') as string)?.trim() || null
-
-    if (!title) return // простая защита
+    const form = new FormData(e.currentTarget)
+    const title = form.get('title') as string
+    const description = form.get('description') as string
 
     await createProject({ title, description })
     setOpen(false)

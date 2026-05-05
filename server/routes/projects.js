@@ -38,23 +38,14 @@ router.post('/', async (req, res) => {
 
 // GET /projects/:id/tasks — get tasks for project
 router.get('/:id/tasks', async (req, res) => {
-  const projectId = Number(req.params.id)
+  const projectId = req.params.id
 
-  if (isNaN(projectId)) {
-    return res.status(400).json({ error: 'Invalid project ID' })
-  }
+  const tasks = await prisma.task.findMany({
+    where: { projectId },
+    orderBy: [{ status: 'asc' }, { order: 'asc' }],
+  })
 
-  try {
-    const tasks = await prisma.task.findMany({
-      where: { projectId },
-      orderBy: { id: 'asc' },
-    })
-
-    res.json(tasks)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: 'Failed to load tasks for project' })
-  }
+  res.json(tasks)
 })
 
 module.exports = router

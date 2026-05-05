@@ -41,13 +41,12 @@ export const useProjectsStore = create<State>((set, get) => ({
       const data = await res.json()
 
       set({ projects: data, loading: false })
-    } catch (err) {
-      console.error(err)
+    } catch {
       set({ error: 'Failed to load projects', loading: false })
     }
   },
 
-  createProject: async (payload) => {
+  createProject: async (payload: { title: string; description?: string }) => {
     set({ loading: true, error: null })
 
     try {
@@ -59,12 +58,8 @@ export const useProjectsStore = create<State>((set, get) => ({
 
       const newProject = await res.json()
 
-      set({
-        projects: [...get().projects, newProject],
-        loading: false,
-      })
-    } catch (err) {
-      console.error(err)
+      set({ projects: [...get().projects, newProject], loading: false })
+    } catch {
       set({ error: 'Failed to create project', loading: false })
     }
   },

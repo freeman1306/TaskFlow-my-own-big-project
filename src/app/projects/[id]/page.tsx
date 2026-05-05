@@ -1,31 +1,16 @@
 'use client'
 
-import { use } from 'react'
-import { useEffect, useState } from 'react'
-import { useProjectsStore } from '@/store/project-store'
+import React, { useEffect, useState } from 'react'
+import { useProjectStore } from '@/store/project-store'
 import { useTaskStore, Task } from '@/store/task-store'
+import { KanbanBoard } from '@/components/board/KanbanBoard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const projectId = Number(id)
+  const projectId = React.use(params).id
 
-  if (!id || isNaN(projectId)) {
-    console.warn('Invalid projectId:', id)
-    return <p className="p-6 text-red-600">Invalid project URL</p>
-  }
-
-  const { projects, fetchProjects } = useProjectsStore()
+  const { projects, fetchProjects } = useProjectStore()
   const { tasks, fetchTasks, createTask, updateTask, deleteTask, loading, error } = useTaskStore()
-
-  const [statusFilter] = useState('all')
-  const [priorityFilter] = useState('all')
-  const [sortBy, setSortBy] = useState('created_desc')
-
-  const filtered = tasks.filter((t) => {
-    if (statusFilter !== 'all' && t.status !== statusFilter) return false
-    return !(priorityFilter !== 'all' && t.priority !== priorityFilter)
-  })
 
   const [open, setOpen] = useState(false)
   const [openEdit, setOpenEdit] = useState(false)
@@ -46,28 +31,28 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     return <p className="p-6">Loading project...</p>
   }
 
-  const handleSubmit = async (e: any) => {
+  // Create Task
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = new FormData(e.target)
-    const title = (form.get('title') as string).trim()
-    const description = (form.get('description') as string)?.trim() || null
-
-    if (!title) return
+    const form = new FormData(e.currentTarget)
+    const title = form.get('title') as string
+    const description = form.get('description') as string
 
     await createTask(projectId, { title, description })
     setOpen(false)
   }
 
-  const handleSubmitEditForm = async (e: any) => {
+  // Edit Task
+  const handleSubmitEditForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!editingTask) return
+    const form = new FormData(e.currentTarget)
+    const title = form.get('title') as string
+    const description = form.get('description') as string
 
-    const form = new FormData(e.target)
-    const title = (form.get('title') as string).trim()
-    const description = (form.get('description') as string)?.trim() || null
-
-    await updateTask(editingTask.id, { title, description })
-    setOpenEdit(false)
+    if (editingTask) {
+      await updateTask(editingTask.id, { title, description })
+      setOpenEdit(false)
+    }
   }
 
   return (
@@ -81,50 +66,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         {loading && <p>Loading tasks...</p>}
         {error && <p className="text-red-500">{error}</p>}
 
-        <select
-          className="border p-2 rounded"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="created_desc">Newest first</option>
-          <option value="created_asc">Oldest first</option>
-          <option value="priority_desc">Priority high → low</option>
-          <option value="priority_asc">Priority low → high</option>
-          <option value="status_asc">Status A → Z</option>
-          <option value="status_desc">Status Z → A</option>
-        </select>
-
-        <div className="space-y-2">
-          {filtered.map((t) => (
-            <div key={t.id} className="border p-4 rounded flex justify-between items-center">
-              <div>
-                <h3 className="text-lg">{t.title}</h3>
-                {t.description && <p className="text-gray-600">{t.description}</p>}
-                <p className="text-gray-600">Status: {t.status}</p>
-                <p className="text-gray-600">Priority: {t.priority}</p>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  className="px-3 py-1 bg-blue-600 text-white rounded"
-                  onClick={() => {
-                    setEditingTask(t)
-                    setOpenEdit(true)
-                  }}
-                >
-                  Edit
-                </button>
-
-                <button
-                  className="px-3 py-1 bg-red-600 text-white rounded"
-                  onClick={() => deleteTask(t.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        {tasks.length > 0 && <KanbanBoard tasks={tasks} />}
 
         <button
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mt-4"
